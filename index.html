@@ -1283,42 +1283,70 @@ function saveManual(){
 }
 
 function downloadUpdatedFile(){
-  const wordsJson = JSON.stringify(WORDS);
-  // Get all scripts on the page and find the one with BASE_WORDS
-  const allScripts = Array.from(document.querySelectorAll('script'));
-  const mainScript = allScripts.find(s => s.src==='' && s.textContent.includes('BASE_WORDS'));
+  // Use WORDS (includes everything from localStorage) as the new BASE_WORDS
+  const wordsJson = JSON.stringify(WORDS, null, 2);
+
+  // Find the script tag with BASE_WORDS
+  const scripts = Array.from(document.querySelectorAll('script'));
+  const mainScript = scripts.find(s => !s.src && s.textContent.includes('const BASE_WORDS='));
   if(!mainScript){ showSync('❌ שגיאה בהורדה'); return; }
-  const updatedJs = mainScript.textContent.replace(
-    /const BASE_WORDS=\[([\s\S]*?)\];/,
-    'const BASE_WORDS=' + wordsJson + ';'
-  );
-  // Rebuild full HTML
+
+  const js = mainScript.textContent;
+
+  // Find exact start and end of BASE_WORDS array
+  const arrStart = js.indexOf('const BASE_WORDS=');
+  // Walk forward to find the matching closing ];
+  let depth = 0, pos = js.indexOf('[', arrStart), arrEnd = -1;
+  for(let i = pos; i < js.length; i++){
+    if(js[i]==='[') depth++;
+    else if(js[i]===']'){ depth--; if(depth===0){ arrEnd=i+1; break; } }
+  }
+  // Also skip the semicolon
+  if(js[arrEnd]===';') arrEnd++;
+
+  const updatedJs = js.slice(0, arrStart)
+    + 'const BASE_WORDS=' + wordsJson + ';
+'
+    + js.slice(arrEnd);
+
+  // Also clear localStorage extra words since they're now in BASE_WORDS
+  const initOld = "loadApiKey();loadLocal();loadQueue();";
+  const initNew = "loadApiKey();loadLocal();loadQueue();";
+  // (no change needed — on open, localStorage extra will just be empty or ignored)
+
   const styleEl = document.querySelector('style');
-  const styleText = styleEl ? styleEl.outerHTML : '';
-  const linkEl = document.querySelector('link[rel="stylesheet"]');
-  const linkText = linkEl ? linkEl.outerHTML : '';
-  // Get body HTML
-  const bodyHtml = document.body.innerHTML;
-  const fullHtml = `<!DOCTYPE html>
+  const linkEl  = document.querySelector('link[rel="stylesheet"]');
+  const fullHtml =
+    '<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מילים | תרגול אנגלית</title>
-${linkText}
-${styleText}
-</head>
+' +
+    '<meta charset="UTF-8">
+' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0">
+' +
+    '<title>מילים | תרגול אנגלית</title>
+' +
+    (linkEl ? linkEl.outerHTML + '
+' : '') +
+    (styleEl ? styleEl.outerHTML + '
+' : '') +
+    '</head>
 <body>
-${bodyHtml}
-<script>
-${updatedJs}
+' +
+    document.body.innerHTML + '
+' +
+    '<script>
+' + updatedJs + '
 <\/script>
-</body>
-</html>`;
+' +
+    '</body>
+</html>';
+
   const blob = new Blob([fullHtml], {type:'text/html;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
   a.download = 'vocab_' + new Date().toISOString().slice(0,10) + '.html';
   document.body.appendChild(a);
   a.click();
