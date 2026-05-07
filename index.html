@@ -736,7 +736,30 @@ const BASE_WORDS=[
 {en:"Admonitory glare",he:"מבט מזהיר ומייסר",explain:"מבט חד שנועד להזהיר מישהו ללא מילים.",example:"The teacher silenced the class with a single admonitory glare."},
 {en:"Illusory halo",he:"הילה אשלייתית",explain:"תדמית חיובית מוגזמת שאינה משקפת מציאות.",example:"Fame creates an illusory halo around celebrities."},
 {en:"Tame",he:"מאולף, עדין",explain:"מאולף ולא פרוע, או משעמם וחסר עוצמה.",example:"After years of wild adventures, his new routine felt surprisingly tame."}
-];
+,
+{en:"perimenopause",he:"פריאמנופאוזה",explain:"התקופה לפני המנופאוזה, בה מתחילים שינויים הורמונליים.",example:"Many women experience mood changes during perimenopause."},
+{en:"Scatty",he:"מפוזר, לא מרוכז",explain:"אדם שכחן ומפוזר, שלא מצליח להתרכז.",example:"She was feeling scatty after a week of poor sleep."},
+{en:"Reliant",he:"בוטח, תלוי",explain:"מי שנסמך על מישהו או משהו אחר.",example:"He became too reliant on his phone for directions."},
+{en:"Realms",he:"ממלכות, תחומים",explain:"תחומים או ממלכות, לרוב במובן מטפורי.",example:"This discovery opens new realms of scientific possibility."},
+{en:"Remorse",he:"חרטה",explain:"תחושה עמוקה של צער ואשמה על מעשה שעשית.",example:"He felt deep remorse after lying to his friend."},
+{en:"audacity",he:"עזות מצח",explain:"העזה לעשות דבר מפתיע או בלתי מקובל.",example:"She had the audacity to ask for a raise after a week on the job."},
+{en:"Boring machine",he:"מכונת קידוח",explain:"מכונה לקדיחת מנהרות או חורים באדמה.",example:"The boring machine drilled through the mountain over several months."},
+{en:"septuagenarian",he:"בן שבעים",explain:"אדם בגיל שבעים עד שבעים ותשע.",example:"The septuagenarian still ran marathons every year."},
+{en:"intensifies",he:"מתעצם, מחריף",explain:"הופך חזק, עמוק או חריף יותר.",example:"The storm intensifies as it approaches the coast."},
+{en:"Coy",he:"ביישן, מתחמק",explain:"מציג ביישנות מלאכותית, או נמנע מלגלות מידע.",example:"She gave a coy smile when asked about her plans."},
+{en:"Membrane",he:"קרום / ממברנה",explain:"שכבה דקה וגמישה המפרידה בין שני חלקים.",example:"The cell membrane controls what enters and exits the cell."},
+{en:"Swelled",he:"נפוח / התנפח",explain:"התרחבות עקב לחץ, נוזל, או גאווה.",example:"His ankle swelled after he twisted it on the stairs."},
+{en:"Carabiner",he:"קרבינר / אטב טיפוס",explain:"טבעת מתכת עם תפס, משמשת בטיפוס ופעילות חוץ.",example:"He clipped the rope to the carabiner before descending."},
+{en:"Strait",he:"מיצר, צר, מעבר מים",explain:"מעבר מים צר המחבר שני ים, או מצב קשה.",example:"The ship passed through the strait at dawn."},
+{en:"Tend",he:"לטפל, לשמור",explain:"לטפל במישהו או במשהו, או לנטות לכיוון מסוים.",example:"She tends the garden every morning before work."},
+{en:"Exempt",he:"פטור / מוגן",explain:"משוחרר מחובה או חוק שחל על אחרים.",example:"Non-profit organisations are often exempt from certain taxes."},
+{en:"Whole",he:"שלם / כולו",explain:"מלא, שלם, ללא חלקים חסרים.",example:"She spent the whole afternoon reading by the window."},
+{en:"Tackle",he:"להתמודד עם, לטפל ב",explain:"להתמודד עם בעיה, אתגר, או יריב.",example:"We need to tackle this problem before it gets worse."},
+{en:"Malarkey",he:"שטויות, בלבול",explain:"דברי הבל, שטויות חסרות ערך.",example:"Don't believe that malarkey he told you about the deal."},
+{en:"Limp",he:"צולע / רפוי",explain:"הליכה לא סדירה עקב פציעה, או תכונה של חוסר נוקשות.",example:"He walked with a slight limp after the accident."},
+{en:"Premises",he:"הנחות / מקום",explain:"מבנה או שטח המשמש לעסק, או הנחות יסוד בלוגיקה.",example:"No smoking is allowed on the premises."},
+{en:"Align",he:"ליישר / להתאים",explain:"לסדר בקו ישר, או ליישר עמדות ואינטרסים.",example:"We need to align our strategy with the company's goals."},
+{en:"Secretions",he:"הפרשות / הפרשות גוף",explain:"חומרים המופרשים מבלוטות בגוף או בצמחים.",example:"The plant's secretions deter insects from feeding on it."}];
 
 let WORDS=[...BASE_WORDS];
 let mode='fc',fcIdx=0,flipped=false;
@@ -1388,14 +1411,14 @@ function downloadUpdatedFile(){
     '</body>
 </html>';
 
-  const blob = new Blob([fullHtml], {type:'text/html;charset=utf-8'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
+  // Use data URI — works on mobile Chrome where blob URLs don't trigger download
+  const encoded = 'data:text/html;charset=utf-8,' + encodeURIComponent(fullHtml);
+  const a = document.createElement('a');
+  a.href = encoded;
   a.download = 'vocab_' + new Date().toISOString().slice(0,10) + '.html';
   document.body.appendChild(a);
   a.click();
-  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+  setTimeout(()=>document.body.removeChild(a), 500);
   showSync('💾 הורד עם ' + WORDS.length + ' מילים');
 }
 function importWords(event){
@@ -1536,7 +1559,9 @@ function refreshAfterAdd(){
   updateStatsUI();
 }
 
-loadApiKey();loadLocal();loadQueue();updateCount();loadFC();buildList();updateStatsUI();
+document.addEventListener('DOMContentLoaded', function(){
+  loadTheme();loadApiKey();loadLocal();loadQueue();updateCount();loadFC();buildList();updateStatsUI();
+});
 </script>
 </body>
 </html>
